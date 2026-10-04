@@ -295,7 +295,6 @@
 <script>
     // Master Bank: 90 High-Difficulty Questions (Nursing Technician Scope)
     const rawQuestions = [
-        // Questions 1 to 8 (Initial Set)
         {
             id: 1,
             question: "A nursing technician is performing endotracheal suctioning for an intubated patient. During insertion of the suction catheter, the patient's heart rate suddenly drops from 82 bpm to 48 bpm on the bedside monitor. What is the nursing technician's FIRST immediate intervention?",
@@ -392,8 +391,6 @@
             rationale: "The standard CDC doffing sequence from most contaminated to least contaminated is: Gloves, Goggles/Face Shield, Gown, and lastly Mask/Respirator (removed outside the room for airborne/droplet safety).",
             distractorAnalysis: "A, B, & C: Gloves are the most contaminated PPE item and must be removed first to prevent contaminating surrounding clothes, face, or respiratory gear during doffing."
         },
-
-        // Questions 9 to 30
         {
             id: 9,
             question: "A nursing technician is obtaining a 12-lead Electrocardiogram (ECG) for a chest pain patient. Where should the technician correctly place electrode V4?",
@@ -658,8 +655,6 @@
             rationale: "Bed alarms signal that an unassisted high-fall-risk patient is attempting to exit the bed. Immediate direct physical response is required.",
             distractorAnalysis: "B & C: Delays caused by searching for nurses result in patient falls and injury. D: Silencing alarms remotely without physical presence jeopardizes patient safety."
         },
-
-        // Questions 31 to 60
         {
             id: 31,
             question: "A nursing technician is measuring an apical pulse on a cardiac patient with an irregular heart rate. What is the standard duration required for an accurate manual apical pulse measurement?",
@@ -1020,8 +1015,6 @@
             rationale: "The orthopneic/tripod position (leaning forward resting arms on an overbed table) leverages accessory chest muscles, lowers the diaphragm, and maximizes lung expansion.",
             distractorAnalysis: "B, C, & D: Supine and Trendelenburg positions force abdominal organs against the diaphragm, severely restricting lung expansion and causing respiratory failure in COPD."
         },
-
-        // Questions 61 to 90 (NEW Advanced Vignettes - High Difficulty)
         {
             id: 61,
             question: "A nursing technician is assisting with a patient post-craniotomy for brain tumor resection. While measuring vital signs, the technician notes the blood pressure elevated from 120/70 mmHg to 185/60 mmHg, heart rate dropped from 76 bpm to 44 bpm, and respirations became irregular and deep. What clinical syndrome does this triad represent?",
@@ -1481,58 +1474,52 @@
         const total = rawQuestions.length;
 
         rawQuestions.forEach((q) => {
-            const selected = document.querySelector(`input[name="q${q.id}"]:checked`);
+            const selectedOption = document.querySelector(`input[name="q${q.id}"]:checked`);
             const rationaleBox = document.getElementById(`rationale-q${q.id}`);
-            rationaleBox.style.display = 'block';
 
-            if (selected) {
-                if (selected.value === "true") {
-                    score++;
+            if (rationaleBox) {
+                rationaleBox.style.display = 'block';
+            }
+
+            if (selectedOption && selectedOption.value === "true") {
+                score++;
+                if (rationaleBox) {
                     rationaleBox.classList.remove('incorrect');
-                } else {
-                    rationaleBox.classList.add('incorrect');
                 }
             } else {
-                rationaleBox.classList.add('incorrect');
+                if (rationaleBox) {
+                    rationaleBox.classList.add('incorrect');
+                }
             }
         });
 
         const percentage = Math.round((score / total) * 100);
-        
-        // Hide control interface
-        document.getElementById('submit-container').style.display = 'none';
-        
-        // Display Candidate Summary & Results
-        const candidateName = document.getElementById('candidate-name').value;
-        const candidateID = document.getElementById('candidate-id').value;
-        
-        const summaryOutput = document.getElementById('candidate-summary-output');
-        summaryOutput.innerHTML = `
+        const candidateName = document.getElementById('candidate-name').value.trim();
+        const candidateId = document.getElementById('candidate-id').value.trim();
+
+        // Pass threshold for SCFHS Prometric Nursing Technician is typically 60%
+        const isPassed = percentage >= 60;
+
+        document.getElementById('candidate-summary-output').innerHTML = `
             <strong>Candidate Name:</strong> ${candidateName}<br>
-            <strong>Eligibility ID:</strong> ${candidateID}<br>
-            <strong>Examination Date:</strong> ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}<br>
-            <strong>Total Questions Assessed:</strong> ${total} High-Difficulty Vignettes
+            <strong>Eligibility ID:</strong> ${candidateId}<br>
+            <strong>Questions Answered Correctly:</strong> ${score} / ${total}
         `;
 
-        const resultsPanel = document.getElementById('results-panel');
-        resultsPanel.style.display = 'block';
-        document.getElementById('score-text').textContent = `${percentage}% (${score}/${total} Correct)`;
-
         const badgeContainer = document.getElementById('assessment-badge-container');
-        const passFailDetails = document.getElementById('pass-fail-details');
-
-        // SCFHS Standard Passing Cutoff = 65%
-        if (percentage >= 65) {
-            badgeContainer.innerHTML = `<div class="assessment-badge status-go">STATUS: GO (PASSED)</div>`;
-            passFailDetails.textContent = "CONGRATULATIONS: You have met the Saudi Commission for Health Specialties (SCFHS) competency benchmark threshold for Nursing Technician licensure.";
-            passFailDetails.style.color = "var(--correct-color)";
-            passFailDetails.style.fontWeight = "bold";
+        if (isPassed) {
+            badgeContainer.innerHTML = `<span class="assessment-badge status-go">STATUS: PASS (READY)</span>`;
         } else {
-            badgeContainer.innerHTML = `<div class="assessment-badge status-not-go">STATUS: NOT GO (FAILED)</div>`;
-            passFailDetails.textContent = "ASSESSMENT RESULT: Below minimum passing standard (< 65%). Comprehensive clinical remediation is required before re-attempting the official board exam.";
-            passFailDetails.style.color = "var(--incorrect-color)";
-            passFailDetails.style.fontWeight = "bold";
+            badgeContainer.innerHTML = `<span class="assessment-badge status-not-go">STATUS: FAIL (NOT READY)</span>`;
         }
+
+        document.getElementById('score-text').textContent = `${percentage}%`;
+        document.getElementById('pass-fail-details').textContent = isPassed 
+            ? "Congratulations! You have successfully passed the SCFHS Prometric Examination standard threshold (>= 60%)." 
+            : "Requires Improvement: Score falls below the minimum required 60% passing score for SCFHS licensure.";
+
+        document.getElementById('results-panel').style.display = 'block';
+        document.getElementById('submit-container').style.display = 'none';
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
