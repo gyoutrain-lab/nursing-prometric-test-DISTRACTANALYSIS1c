@@ -187,6 +187,33 @@
             background-color: #00332c;
         }
 
+        .btn-secondary {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: #004d40;
+        }
+
+        .controls-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .left-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .right-controls {
+            display: flex;
+            gap: 10px;
+        }
+
         .results-panel {
             display: none;
             text-align: center;
@@ -242,6 +269,8 @@
             .container { padding: 15px; }
             header { flex-direction: column; align-items: flex-start; }
             .candidate-summary { width: 100%; }
+            .controls-container { flex-direction: column; align-items: stretch; }
+            .left-controls, .right-controls { justify-content: space-between; }
         }
     </style>
 </head>
@@ -284,18 +313,25 @@
 
     <!-- Questions Container -->
     <div id="quiz-container" style="display: none;">
-        <!-- Questions injected via JavaScript -->
+        <!-- Single Question rendered here -->
     </div>
 
-    <div id="submit-container" style="text-align: right; margin-top: 20px; display: none;">
-        <button class="btn" id="submit-btn" onclick="submitExam()">Finalize & Submit Exam</button>
+    <!-- Navigations & Controls -->
+    <div class="controls-container" id="navigation-controls" style="display: none;">
+        <div class="left-controls">
+            <button class="btn btn-secondary" id="prev-btn" onclick="navigateQuestion(-1)">Previous</button>
+            <button class="btn" id="next-btn" onclick="navigateQuestion(1)">Next</button>
+        </div>
+        <div class="right-controls">
+            <button class="btn btn-secondary" id="rationale-btn" onclick="toggleRationale()">Show Rationale</button>
+            <button class="btn" id="submit-btn" style="display: none; background-color: #c62828;" onclick="submitExam()">Finalize & Submit Exam</button>
+        </div>
     </div>
 </div>
 
 <script>
-    // Master Bank: 90 High-Difficulty Questions (Nursing Technician Scope)
+    // Master Bank: 90 High-Difficulty Questions
     const rawQuestions = [
-        // Questions 1 to 8 (Initial Set)
         {
             id: 1,
             question: "A nursing technician is performing endotracheal suctioning for an intubated patient. During insertion of the suction catheter, the patient's heart rate suddenly drops from 82 bpm to 48 bpm on the bedside monitor. What is the nursing technician's FIRST immediate intervention?",
@@ -392,8 +428,6 @@
             rationale: "The standard CDC doffing sequence from most contaminated to least contaminated is: Gloves, Goggles/Face Shield, Gown, and lastly Mask/Respirator (removed outside the room for airborne/droplet safety).",
             distractorAnalysis: "A, B, & C: Gloves are the most contaminated PPE item and must be removed first to prevent contaminating surrounding clothes, face, or respiratory gear during doffing."
         },
-
-        // Questions 9 to 30
         {
             id: 9,
             question: "A nursing technician is obtaining a 12-lead Electrocardiogram (ECG) for a chest pain patient. Where should the technician correctly place electrode V4?",
@@ -658,8 +692,6 @@
             rationale: "Bed alarms signal that an unassisted high-fall-risk patient is attempting to exit the bed. Immediate direct physical response is required.",
             distractorAnalysis: "B & C: Delays caused by searching for nurses result in patient falls and injury. D: Silencing alarms remotely without physical presence jeopardizes patient safety."
         },
-
-        // Questions 31 to 60
         {
             id: 31,
             question: "A nursing technician is measuring an apical pulse on a cardiac patient with an irregular heart rate. What is the standard duration required for an accurate manual apical pulse measurement?",
@@ -1020,8 +1052,6 @@
             rationale: "The orthopneic/tripod position (leaning forward resting arms on an overbed table) leverages accessory chest muscles, lowers the diaphragm, and maximizes lung expansion.",
             distractorAnalysis: "B, C, & D: Supine and Trendelenburg positions force abdominal organs against the diaphragm, severely restricting lung expansion and causing respiratory failure in COPD."
         },
-
-        // Questions 61 to 90 (NEW Advanced Vignettes - High Difficulty)
         {
             id: 61,
             question: "A nursing technician is assisting with a patient post-craniotomy for brain tumor resection. While measuring vital signs, the technician notes the blood pressure elevated from 120/70 mmHg to 185/60 mmHg, heart rate dropped from 76 bpm to 44 bpm, and respirations became irregular and deep. What clinical syndrome does this triad represent?",
@@ -1332,209 +1362,231 @@
                 { text: "A rolled towel directly under the lumbar incision.", isCorrect: false }
             ],
             rationale: "Placing a firm pillow between the knees during turning maintains hip and spine alignment, preventing twisting (torsion) of the operative spinal column.",
-            distractorAnalysis: "B: Sandbags under heels do not stabilize the spine during turning. C: Doughnut rings increase sacral venous ischemia and skin breakdown. D: Placing towels under spinal incisions causes surgical wound disruption and extreme pain."
+            distractorAnalysis: "B: Sandbags under heels do not stabilize the spine during turning. C: Doughnut rings concentrate sacral pressure. D: Placing rolls under incisions causes severe wound disruption."
         },
         {
             id: 87,
-            question: "A technician is caring for a patient admitted with severe sepsis who has an indwelling urinary catheter. The technician notes the urine in the collection bag has turned dark amber with brown sediment and output is 10 mL over the last 2 hours. What is the immediate priority?",
+            question: "A technician is checking the placement of an NG tube via auscultation of an air bolus. While this method was traditionally used, what is considered the primary GOLD STANDARD method to definitively confirm NG tube tip placement prior to first-time tube feeding?",
             options: [
-                { text: "Inspect the tubing for kinks/obstruction and notify the primary nurse immediately.", isCorrect: true },
-                { text: "Flush the catheter tube vigorously with 50 mL tap water.", isCorrect: false },
-                { text: "Disconnect the catheter to collect a fresh voided midstream sample.", isCorrect: false },
-                { text: "Raise the drainage bag above bed level to flush the line.", isCorrect: false }
+                { text: "Radiographic (X-ray) confirmation.", isCorrect: true },
+                { text: "Auscultation of a 20 mL air WHOOSH over the epigastrium.", isCorrect: false },
+                { text: "Aspiration of stomach fluid for visual clarity.", isCorrect: false },
+                { text: "Placing the end of the NG tube in a cup of water to check for bubbles.", isCorrect: false }
             ],
-            rationale: "An output of 5 mL/hr (10 mL/2 hr) indicates severe acute renal failure or physical catheter occlusion in sepsis. Checking for physical kinks first, then alerting the nurse immediately prevents irreversible renal collapse.",
-            distractorAnalysis: "B: Flushing Foley catheters with unsterile tap water causes lethal bacterial urinary sepsis. C: Disconnecting catheters breaks closed sterile systems. D: Raising drainage bags causes infected urine backflow."
+            rationale: "Radiographic chest/abdominal X-ray is the definitive gold standard to confirm initial NG tube placement before any medication or feeding administration.",
+            distractorAnalysis: "B, C, & D: Auscultation, visual inspection, and water bubble tests are unverified and prone to false positives, risking pulmonary aspiration."
         },
         {
             id: 88,
-            question: "A nursing technician is measuring vital signs on a patient receiving intravenous chemotherapy. The patient's oral temperature reads 38.3°C (101.0°F) and the Absolute Neutrophil Count (ANC) is reported as severe neutropenia (< 500/mm³). How should the technician classify this scenario?",
+            question: "A technician is taking vital signs on a patient with severe hypovolemic shock. What combination of blood pressure and heart rate changes classically indicates worsening hypovolemic shock?",
             options: [
-                { text: "Neutropenic Fever (Medical Emergency requiring immediate STAT notification).", isCorrect: true },
-                { text: "Expected mild side effect of ongoing chemotherapy.", isCorrect: false },
-                { text: "Transient hyperthermia requiring routine cooling blanket application.", isCorrect: false },
-                { text: "Viral influenza requiring standard discharge home.", isCorrect: false }
+                { text: "Decreasing Blood Pressure (Hypotension) with Increasing Heart Rate (Tachycardia).", isCorrect: true },
+                { text: "Increasing Blood Pressure (Hypertension) with Decreasing Heart Rate (Bradycardia).", isCorrect: false },
+                { text: "Stable Blood Pressure with Decreasing Heart Rate.", isCorrect: false },
+                { text: "Increasing Blood Pressure with Increasing Heart Rate.", isCorrect: false }
             ],
-            rationale: "Fever (≥ 38.0°C) in a neutropenic patient (ANC < 500) represents Neutropenic Fever, a critical medical emergency. Due to lack of white blood cells, infection rapidly progresses to fatal septic shock within hours without immediate broad-spectrum IV antibiotics.",
-            distractorAnalysis: "B: Fever is never an benign expected side effect in neutropenia; it signifies severe infection. C: Cooling blankets treat symptoms without addressing underlying sepsis. D: Neutropenic fever requires emergency admission and workup."
+            rationale: "Hypovolemic shock features decreased circulating intravascular volume. The sympathetic nervous system responds with compensatory tachycardia, but as volume collapses, severe hypotension ensues.",
+            distractorAnalysis: "B: Hypertension with bradycardia is Cushing's triad (increased ICP). C & D: Do not represent hypovolemic shock physiology."
         },
         {
             id: 89,
-            question: "A technician is preparing to perform tracheostomy care. When suctioning the tracheostomy, what is the maximum duration of continuous suction application permitted per suction pass?",
+            question: "A nursing technician is providing oral hygiene to a conscious patient with a low platelet count (Thrombocytopenia, platelet count < 20,000/mm³). What intervention is essential to prevent severe oral mucosal hemorrhage?",
             options: [
-                { text: "10 to 15 seconds.", isCorrect: true },
-                { text: "30 to 45 seconds.", isCorrect: false },
-                { text: "60 seconds.", isCorrect: false },
-                { text: "Until all breath sounds become completely clear.", isCorrect: false }
+                { text: "Use a soft foam swab (Toothette) instead of a hard-bristle toothbrush.", isCorrect: true },
+                { text: "Brush teeth vigorously with a firm nylon toothbrush.", isCorrect: false },
+                { text: "Floss tightly between all teeth twice daily.", isCorrect: false },
+                { text: "Rinse mouth with concentrated hydrogen peroxide.", isCorrect: false }
             ],
-            rationale: "Suctioning evacuates airway oxygen along with secretions. Limiting continuous suction application to 10–15 seconds prevents profound hypoxemia, cardiac arrhythmias, and vagal response.",
-            distractorAnalysis: "B, C, & D: Applying suction longer than 15 seconds causes severe myocardial hypoxia, acute bradycardia, and cardiac arrest."
+            rationale: "Severe thrombocytopenia creates extreme bleeding risks. Using soft foam swabs prevents gingival mechanical trauma and profuse oral bleeding.",
+            distractorAnalysis: "B & C: Hard bristles and dental floss induce severe mucosal trauma and uncontainable gingival hemorrhages. D: Hydrogen peroxide damages delicate mucosal tissues."
         },
         {
             id: 90,
-            question: "A nursing technician is caring for a patient who had a total laryngectomy 3 days ago. Which statement regarding the patient's airway management is correct?",
+            question: "A nursing technician is obtaining an arterial blood pressure reading on a patient with peripheral arterial disease in both upper arms. When measuring blood pressure in both arms, what difference in systolic pressure between arms is considered abnormal and requires reporting to the nurse?",
             options: [
-                { text: "The patient breathes exclusively through the neck stoma; mask ventilation over the nose/mouth is ineffective.", isCorrect: true },
-                { text: "The upper airway (nose and mouth) remains connected to the trachea.", isCorrect: false },
-                { text: "The stoma can be covered securely with a tight plastic sheet during baths.", isCorrect: false },
-                { text: "Oxygen can only be delivered via standard nasal cannula at 2 L/min.", isCorrect: false }
+                { text: "A difference greater than 10 to 15 mmHg between arms.", isCorrect: true },
+                { text: "A difference of 2 to 5 mmHg between arms.", isCorrect: false },
+                { text: "Identical pressures in both arms.", isCorrect: false },
+                { text: "A difference of 1 mmHg.", isCorrect: false }
             ],
-            rationale: "In a total laryngectomy, the trachea is permanently disconnected from the upper pharynx and re-routed to the anterior neck stoma. The patient is a neck-breather; attempts to ventilate via mouth/nose will fail.",
-            distractorAnalysis: "B: Upper airway and trachea are completely separated post-laryngectomy. C: Plastic coverings over stomas asphyxiate the patient. D: Nasal cannulas do not supply oxygen to neck stomas."
+            rationale: "A inter-arm pressure difference greater than 10 to 15 mmHg is abnormal and suggests arterial stenosis, aortic dissection, or subclavian steal syndrome.",
+            distractorAnalysis: "B, C, & D: Small variations (up to 5-10 mmHg) are within acceptable physiological variation."
         }
     ];
 
-    let timerInterval;
-
-    // Helper: Fisher-Yates Shuffle Algorithm for Array Randomization
-    function shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-    }
+    let currentQuestionIndex = 0;
+    let userAnswers = new Array(rawQuestions.length).fill(null);
+    let rationaleVisible = false;
+    let timerInterval = null;
+    let timeRemaining = 135 * 60; // 135 minutes in seconds
 
     function initializeExam() {
-        const nameInput = document.getElementById('candidate-name').value.trim();
-        const idInput = document.getElementById('candidate-id').value.trim();
+        const candidateName = document.getElementById('candidate-name').value.trim();
+        const candidateId = document.getElementById('candidate-id').value.trim();
 
-        if (!nameInput || !idInput) {
-            alert("Mandatory Field Missing: Please enter Candidate Full Name and Candidate ID before starting the examination.");
+        if (!candidateName || !candidateId) {
+            alert("Please enter both Candidate Name and SCFHS Application ID before starting.");
             return;
         }
 
         document.getElementById('profile-section').style.display = 'none';
         document.getElementById('quiz-container').style.display = 'block';
-        document.getElementById('submit-container').style.display = 'block';
+        document.getElementById('navigation-controls').style.display = 'flex';
 
-        renderQuiz();
-        startTimer(8100); // 135 minutes for 90 questions (1.5 min/question standard)
+        startTimer();
+        renderQuestion();
     }
 
-    function renderQuiz() {
-        const quizContainer = document.getElementById('quiz-container');
-        quizContainer.innerHTML = '';
-
-        // Deep copy raw questions to randomize both question order and choices dynamically
-        const questionsToRender = JSON.parse(JSON.stringify(rawQuestions));
-        
-        // Shuffle question sequence
-        shuffleArray(questionsToRender);
-
-        questionsToRender.forEach((q, index) => {
-            // Shuffle choices inside each question
-            shuffleArray(q.options);
-
-            const questionCard = document.createElement('div');
-            questionCard.className = 'question-card';
-            
-            let optionsHTML = '';
-            q.options.forEach((opt, optIdx) => {
-                optionsHTML += `
-                    <li class="option-item">
-                        <label class="option-label">
-                            <input type="radio" name="q${q.id}" value="${opt.isCorrect}">
-                            <span><strong>${String.fromCharCode(65 + optIdx)}.</strong> ${opt.text}</span>
-                        </label>
-                    </li>
-                `;
-            });
-
-            questionCard.innerHTML = `
-                <div class="question-title">Question ${index + 1}: ${q.question}</div>
-                <ul class="options-list">
-                    ${optionsHTML}
-                </ul>
-                <div class="rationale-box" id="rationale-q${q.id}">
-                    <strong>Correct Rationale:</strong> ${q.rationale}<br>
-                    <div class="distractor-analysis"><strong>Distractor Analysis:</strong> ${q.distractorAnalysis}</div>
-                </div>
-            `;
-            quizContainer.appendChild(questionCard);
-        });
-    }
-
-    function startTimer(durationSeconds) {
-        let timer = durationSeconds, minutes, seconds;
-        const display = document.getElementById('timer');
-        
+    function startTimer() {
         timerInterval = setInterval(() => {
-            minutes = parseInt(timer / 60, 10);
-            seconds = parseInt(timer % 60, 10);
-
-            minutes = minutes < 10 ? "0" + minutes : minutes;
-            seconds = seconds < 10 ? "0" + seconds : seconds;
-
-            display.textContent = `Time Remaining: ${minutes}:${seconds}`;
-
-            if (--timer < 0) {
+            timeRemaining--;
+            if (timeRemaining <= 0) {
                 clearInterval(timerInterval);
-                alert("Time expired! Submitting exam automatically.");
+                alert("Time has expired! Submitting your exam automatically.");
                 submitExam();
+                return;
             }
+
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            document.getElementById('timer').innerText = `Time: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
         }, 1000);
+    }
+
+    function renderQuestion() {
+        const q = rawQuestions[currentQuestionIndex];
+        rationaleVisible = false;
+
+        let optionsHtml = '';
+        q.options.forEach((opt, idx) => {
+            const isChecked = userAnswers[currentQuestionIndex] === idx ? 'checked' : '';
+            optionsHtml += `
+                <li class="option-item">
+                    <label class="option-label">
+                        <input type="radio" name="option" value="${idx}" ${isChecked} onchange="selectOption(${idx})">
+                        <span>${opt.text}</span>
+                    </label>
+                </li>
+            `;
+        });
+
+        const html = `
+            <div class="question-card">
+                <div style="font-size: 0.9rem; font-weight: bold; color: var(--secondary-color); margin-bottom: 8px;">
+                    Question ${currentQuestionIndex + 1} of ${rawQuestions.length}
+                </div>
+                <div class="question-title">${q.question}</div>
+                <ul class="options-list">
+                    ${optionsHtml}
+                </ul>
+                
+                <div class="rationale-box" id="rationale-container">
+                    <strong>Rationale:</strong> ${q.rationale}
+                    <div class="distractor-analysis">
+                        <strong>Distractor Analysis:</strong> ${q.distractorAnalysis}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('quiz-container').innerHTML = html;
+        updateControls();
+    }
+
+    function selectOption(index) {
+        userAnswers[currentQuestionIndex] = index;
+    }
+
+    function toggleRationale() {
+        const container = document.getElementById('rationale-container');
+        if (!container) return;
+
+        if (userAnswers[currentQuestionIndex] === null) {
+            alert("Harap pilih jawaban terlebih dahulu sebelum melihat Rationale.");
+            return;
+        }
+
+        const q = rawQuestions[currentQuestionIndex];
+        const selectedIdx = userAnswers[currentQuestionIndex];
+        const isCorrect = q.options[selectedIdx].isCorrect;
+
+        if (isCorrect) {
+            container.className = "rationale-box";
+        } else {
+            container.className = "rationale-box incorrect";
+        }
+
+        rationaleVisible = !rationaleVisible;
+        container.style.display = rationaleVisible ? 'block' : 'none';
+        document.getElementById('rationale-btn').innerText = rationaleVisible ? 'Hide Rationale' : 'Show Rationale';
+    }
+
+    function updateControls() {
+        // Previous Button
+        document.getElementById('prev-btn').style.visibility = currentQuestionIndex === 0 ? 'hidden' : 'visible';
+
+        // Next Button
+        if (currentQuestionIndex === rawQuestions.length - 1) {
+            document.getElementById('next-btn').style.display = 'none';
+            document.getElementById('submit-btn').style.display = 'inline-block';
+        } else {
+            document.getElementById('next-btn').style.display = 'inline-block';
+            document.getElementById('submit-btn').style.display = 'none';
+        }
+
+        // Reset Rationale button state for new question
+        document.getElementById('rationale-btn').innerText = 'Show Rationale';
+    }
+
+    function navigateQuestion(direction) {
+        currentQuestionIndex += direction;
+        if (currentQuestionIndex < 0) currentQuestionIndex = 0;
+        if (currentQuestionIndex >= rawQuestions.length) currentQuestionIndex = rawQuestions.length - 1;
+        renderQuestion();
     }
 
     function submitExam() {
         clearInterval(timerInterval);
-        let score = 0;
-        const total = rawQuestions.length;
 
-        rawQuestions.forEach((q) => {
-            const selected = document.querySelector(`input[name="q${q.id}"]:checked`);
-            const rationaleBox = document.getElementById(`rationale-q${q.id}`);
-            rationaleBox.style.display = 'block';
-
-            if (selected) {
-                if (selected.value === "true") {
-                    score++;
-                    rationaleBox.classList.remove('incorrect');
-                } else {
-                    rationaleBox.classList.add('incorrect');
-                }
-            } else {
-                rationaleBox.classList.add('incorrect');
+        let correctCount = 0;
+        rawQuestions.forEach((q, idx) => {
+            const selectedOpt = userAnswers[idx];
+            if (selectedOpt !== null && q.options[selectedOpt].isCorrect) {
+                correctCount++;
             }
         });
 
-        const percentage = Math.round((score / total) * 100);
-        
-        // Hide control interface
-        document.getElementById('submit-container').style.display = 'none';
-        
-        // Display Candidate Summary & Results
+        const percentage = Math.round((correctCount / rawQuestions.length) * 100);
+        const isPassed = percentage >= 65; // Standard SCFHS passing threshold (65%)
+
         const candidateName = document.getElementById('candidate-name').value;
-        const candidateID = document.getElementById('candidate-id').value;
-        
-        const summaryOutput = document.getElementById('candidate-summary-output');
-        summaryOutput.innerHTML = `
-            <strong>Candidate Name:</strong> ${candidateName}<br>
-            <strong>Eligibility ID:</strong> ${candidateID}<br>
-            <strong>Examination Date:</strong> ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}<br>
-            <strong>Total Questions Assessed:</strong> ${total} High-Difficulty Vignettes
-        `;
+        const candidateId = document.getElementById('candidate-id').value;
+
+        document.getElementById('quiz-container').style.display = 'none';
+        document.getElementById('navigation-controls').style.display = 'none';
 
         const resultsPanel = document.getElementById('results-panel');
         resultsPanel.style.display = 'block';
-        document.getElementById('score-text').textContent = `${percentage}% (${score}/${total} Correct)`;
+
+        document.getElementById('candidate-summary-output').innerHTML = `
+            <strong>Candidate Name:</strong> ${candidateName}<br>
+            <strong>Application ID:</strong> ${candidateId}<br>
+            <strong>Total Questions:</strong> ${rawQuestions.length}<br>
+            <strong>Correct Answers:</strong> ${correctCount} / ${rawQuestions.length}
+        `;
+
+        document.getElementById('score-text').innerText = `${percentage}%`;
 
         const badgeContainer = document.getElementById('assessment-badge-container');
         const passFailDetails = document.getElementById('pass-fail-details');
 
-        // SCFHS Standard Passing Cutoff = 65%
-        if (percentage >= 65) {
-            badgeContainer.innerHTML = `<div class="assessment-badge status-go">STATUS: GO (PASSED)</div>`;
-            passFailDetails.textContent = "CONGRATULATIONS: You have met the Saudi Commission for Health Specialties (SCFHS) competency benchmark threshold for Nursing Technician licensure.";
-            passFailDetails.style.color = "var(--correct-color)";
-            passFailDetails.style.fontWeight = "bold";
+        if (isPassed) {
+            badgeContainer.innerHTML = `<span class="assessment-badge status-go">PASS (ELIGIBLE)</span>`;
+            passFailDetails.innerHTML = `<span style="color: var(--correct-color); font-weight: bold;">Congratulations! You have successfully passed the SCFHS Prometric Nursing Technician Board Examination Simulator.</span>`;
         } else {
-            badgeContainer.innerHTML = `<div class="assessment-badge status-not-go">STATUS: NOT GO (FAILED)</div>`;
-            passFailDetails.textContent = "ASSESSMENT RESULT: Below minimum passing standard (< 65%). Comprehensive clinical remediation is required before re-attempting the official board exam.";
-            passFailDetails.style.color = "var(--incorrect-color)";
-            passFailDetails.style.fontWeight = "bold";
+            badgeContainer.innerHTML = `<span class="assessment-badge status-not-go">FAIL (NOT ELIGIBLE)</span>`;
+            passFailDetails.innerHTML = `<span style="color: var(--incorrect-color); font-weight: bold;">You did not meet the required passing threshold (65%). Please review the rationale sections and try again.</span>`;
         }
-
-        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 </script>
 </body>
